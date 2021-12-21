@@ -6,12 +6,12 @@ import "./TokenInterface.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 contract MerkleDrop {
-    bytes32 public merkleRoot;
+    bytes32 private merkleRoot;
     TokenInterface public dropToken;
-    uint256 public initialBalance;
-    uint256 public remainingValue;
-    uint256 public spentTokens;
-    uint256 public expiresInSeconds;
+    uint256 private initialBalance;
+    uint256 private remainingValue;
+    uint256 private spentTokens;
+    uint256 private expiresInSeconds;
 
     uint256 public index;
     bool public isEnabled;
