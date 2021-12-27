@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/proxy/Clones.sol";
 
 contract MerkleFactory {
     MerkleDrop[] public drops;
-    uint256 private disabledCount;
     address private masterContract;
 
     constructor(address _masterContract) {
@@ -40,10 +39,9 @@ contract MerkleFactory {
 
     function disable(MerkleDrop drop) external {
         drops[drop.index()].disable();
-        disabledCount++;
     }
 
-    function claimRemainingToken(MerkleDrop drop) external {
+    function claimRemainingTokens(MerkleDrop drop) external {
         drops[drop.index()].claimTokensBack(msg.sender);
     }
 }

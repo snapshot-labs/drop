@@ -44,7 +44,14 @@ contract MerkleDrop {
         uint256 value,
         bytes32[] memory proof
     ) public {
-        require(_verify(_leaf(account, value), proof), "Invalid merkle proof");
+        require(
+            MerkleProof.verify(
+                proof,
+                merkleRoot,
+                keccak256(abi.encodePacked(account, value))
+            ),
+            "Invalid merkle proof"
+        );
         require(!claimed[account], "Already claimed.");
         require(isEnabled, "Contract disabled.");
         require(block.timestamp <= expiresInSeconds, "Times up!");
@@ -63,32 +70,10 @@ contract MerkleDrop {
     function claimTokensBack(address _msgSender) external {
         require(_msgSender == owner, "Not a owner");
         require(block.timestamp >= expiresInSeconds, "Drop not ended yet!");
-        address payable addressOfOwner = payable(owner);
-        addressOfOwner.transfer(remainingValue);
-        console.log(address(this).balance);
-    }
-
-    function _leaf(address account, uint256 value)
-        internal
-        pure
-        returns (bytes32)
-    {
-        return keccak256(abi.encodePacked(account, value));
-    }
-
-    function _verify(bytes32 leaf, bytes32[] memory proof)
-        internal
-        view
-        returns (bool)
-    {
-        return MerkleProof.verify(proof, merkleRoot, leaf);
+        dropToken.transfer(owner, remainingValue);
     }
 
     function disable() external {
         isEnabled = false;
-    }
-
-    function enable() external {
-        isEnabled = true;
     }
 }

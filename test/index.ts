@@ -77,9 +77,9 @@ describe("Create Factory and test", function () {
       });
     }
     after(async function () {
-      await expect(factory.claimRemainingToken(contractOne)).to.be.revertedWith(
-        "Drop not ended yet!"
-      );
+      await expect(
+        factory.claimRemainingTokens(contractOne)
+      ).to.be.revertedWith("Drop not ended yet!");
     });
   });
 });
