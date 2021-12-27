@@ -15,7 +15,7 @@ contract MerkleFactory {
     event MerkleContractCreated(address contractAddress);
 
     function createMerkleDrop(
-        ERC20 token,
+        IERC20 token,
         uint256 balance,
         bytes32 merkleRoot,
         uint256 expiresInSeconds
