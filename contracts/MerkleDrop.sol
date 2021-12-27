@@ -73,7 +73,8 @@ contract MerkleDrop {
         dropToken.transfer(owner, remainingValue);
     }
 
-    function disable() external {
+    function disable(address _msgSender) external {
+        require(_msgSender == owner, "Not a owner");
         isEnabled = false;
     }
 }

@@ -38,7 +38,7 @@ contract MerkleFactory {
     }
 
     function disable(MerkleDrop drop) external {
-        drops[drop.index()].disable();
+        drops[drop.index()].disable(msg.sender);
     }
 
     function claimRemainingTokens(MerkleDrop drop) external {
