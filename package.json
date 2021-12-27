@@ -1,6 +1,10 @@
 {
   "name": "merkle-drop",
   "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "test": "REPORT_GAS=true hh test"
+  },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
     "@nomiclabs/hardhat-etherscan": "^2.1.8",

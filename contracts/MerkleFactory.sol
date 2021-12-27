@@ -2,9 +2,9 @@
 pragma solidity ^0.8.4;
 
 import "./MerkleDrop.sol";
-import "./CloneFactory.sol";
+import "@openzeppelin/contracts/proxy/Clones.sol";
 
-contract MerkleFactory is CloneFactory {
+contract MerkleFactory {
     MerkleDrop[] public drops;
     uint256 private disabledCount;
     address private masterContract;
@@ -16,12 +16,12 @@ contract MerkleFactory is CloneFactory {
     event MerkleContractCreated(address contractAddress);
 
     function createMerkleDrop(
-        TokenInterface token,
+        ERC20 token,
         uint256 balance,
         bytes32 merkleRoot,
         uint256 expiresInSeconds
     ) external {
-        MerkleDrop drop = MerkleDrop(createClone(masterContract));
+        MerkleDrop drop = MerkleDrop(Clones.clone(masterContract));
         drop.init(
             token,
             balance,

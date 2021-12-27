@@ -2,12 +2,12 @@
 pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
-import "./TokenInterface.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 contract MerkleDrop {
     bytes32 private merkleRoot;
-    TokenInterface public dropToken;
+    ERC20 public dropToken;
     uint256 private initialBalance;
     uint256 private remainingValue;
     uint256 private spentTokens;
@@ -22,7 +22,7 @@ contract MerkleDrop {
     event Claimed(address recipient, uint256 value);
 
     function init(
-        TokenInterface _dropToken,
+        ERC20 _dropToken,
         uint256 _initialBalance,
         bytes32 _merkleRoot,
         uint256 _index,
@@ -86,5 +86,9 @@ contract MerkleDrop {
 
     function disable() external {
         isEnabled = false;
+    }
+
+    function enable() external {
+        isEnabled = true;
     }
 }
