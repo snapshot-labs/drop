@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "./ISnapshotDrop.sol";
+import "./IDrop.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract MerkleDropERC721 is ISnapshotDrop, Ownable {
+contract MerkleDropERC721 is IDrop, Ownable {
     using SafeERC20 for IERC20;
 
     address public override token;

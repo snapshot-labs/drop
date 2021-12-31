@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-interface ISnapshotDrop {
+interface IDrop {
     // Returns the address of the token distributed by this contract.
     function token() external view returns (address);
     // Returns the merkle root of the merkle tree containing account balances available to claim.

@@ -2,7 +2,6 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/proxy/Clones.sol";
-import "./ISnapshotDrop.sol";
 import "./MerkleDrop.sol";
 
 contract MerkleFactory {

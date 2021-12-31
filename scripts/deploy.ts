@@ -15,7 +15,7 @@ async function main() {
 
   console.log({
     MyToken: MyTokenReceipt.address,
-    MerkleDropReceipt: MerkleDropReceipt.address,
+    MerkleDrop: MerkleDropReceipt.address,
     MerkleDropERC721: MerkleDropERC721Receipt.address,
   });
 }
