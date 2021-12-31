@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "hardhat/console.sol";
 import "./ISnapshotDrop.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract MerkleDrop is ISnapshotDrop, Ownable {
+contract MerkleDropERC721 is ISnapshotDrop, Ownable {
     using SafeERC20 for IERC20;
 
     address public override token;
@@ -26,9 +25,11 @@ contract MerkleDrop is ISnapshotDrop, Ownable {
     ) external {
         require(!initialized, "Drop already Initialized");
         initialized = true;
+
         token = token_;
         merkleRoot = merkleRoot_;
         expireTimestamp = expireTimestamp_;
+
         _transferOwnership(owner_);
     }
 
@@ -44,17 +45,23 @@ contract MerkleDrop is ISnapshotDrop, Ownable {
             "Invalid proof"
         );
         claimed[account] = true;
-        IERC20(token).safeTransfer(account, amount);
+        IERC721 tokenContract = IERC721(token);
+        tokenContract.safeTransferFrom(
+            tokenContract.ownerOf(amount),
+            account,
+            amount
+        );
+
         emit Claimed(account, amount);
     }
 
-    function sweepOut(address token_) external onlyOwner {
+    function sweep(address token_, address target) external onlyOwner {
         require(
             block.timestamp >= expireTimestamp || token_ != token,
-            "Drop not ended"
+           "Drop not ended"
         );
         IERC20 tokenContract = IERC20(token_);
         uint256 balance = tokenContract.balanceOf(address(this));
-        tokenContract.safeTransfer(msg.sender, balance);
+        tokenContract.safeTransfer(target, balance);
     }
 }
