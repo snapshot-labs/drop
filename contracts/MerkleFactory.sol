@@ -12,10 +12,9 @@ contract MerkleFactory {
         address templateAddress,
         address tokenAddress,
         bytes32 merkleRoot,
-        uint256 expireTimestamp,
-        bytes32 salt
+        uint256 expireTimestamp
     ) external returns (MerkleDrop drop) {
-        drop = MerkleDrop(Clones.cloneDeterministic(templateAddress, salt));
+        drop = MerkleDrop(Clones.clone(templateAddress));
         drop.init(msg.sender, tokenAddress, merkleRoot, expireTimestamp);
         drops.push(drop);
         emit CreateDrop(address(drop));
@@ -23,13 +22,5 @@ contract MerkleFactory {
 
     function getAllMerkleDrops() external view returns (MerkleDrop[] memory) {
         return drops;
-    }
-
-    function computeDeployedAddress(address templateAddress, bytes32 salt)
-        external
-        view
-        returns (address)
-    {
-        return Clones.predictDeterministicAddress(templateAddress, salt);
     }
 }
