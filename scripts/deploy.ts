@@ -5,6 +5,10 @@ async function main() {
   const MyTokenReceipt = await MyToken.deploy();
   await MyTokenReceipt.deployed();
 
+  const MerkleFactory = await ethers.getContractFactory("MerkleFactory");
+  const MerkleFactoryReceipt = await MerkleFactory.deploy();
+  await MerkleFactoryReceipt.deployed();
+
   const MerkleDrop = await ethers.getContractFactory("MerkleDrop");
   const MerkleDropReceipt = await MerkleDrop.deploy();
   await MerkleDropReceipt.deployed();
@@ -15,6 +19,7 @@ async function main() {
 
   console.log({
     MyToken: MyTokenReceipt.address,
+    MerkleFactory: MerkleFactoryReceipt.address,
     MerkleDrop: MerkleDropReceipt.address,
     MerkleDropERC721: MerkleDropERC721Receipt.address,
   });
