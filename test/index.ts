@@ -49,9 +49,18 @@ describe("Create ERC20 Merkle Drop and test", function () {
         Date.now() + 10000,
         salt
       );
-      const createdMerkleDrops = await factory.getAllMerkleDrops();
-      contractOne = createdMerkleDrops[0];
-      await deployedToken.transfer(createdMerkleDrops[0], 500000);
+      const address = await factory.computeDeployedAddress(
+        erc20DropTemplate.address,
+        salt
+      );
+      // console.log("🚀 ~ file: index.ts ~ line 56 ~ address", address);
+      // const createdMerkleDrops = await factory.getAllMerkleDrops();
+      // console.log(
+      //   "🚀 ~ file: index.ts ~ line 58 ~ createdMerkleDrops",
+      //   createdMerkleDrops
+      // );
+      // contractOne = createdMerkleDrops[0];
+      await deployedToken.transfer(address, 500000);
     });
 
     for (const [account, value] of Object.entries(sampleData)) {

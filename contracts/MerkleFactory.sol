@@ -24,4 +24,12 @@ contract MerkleFactory {
     function getAllMerkleDrops() external view returns (MerkleDrop[] memory) {
         return drops;
     }
+
+    function computeDeployedAddress(address templateAddress, bytes32 salt)
+        external
+        view
+        returns (address)
+    {
+        return Clones.predictDeterministicAddress(templateAddress, salt);
+    }
 }
