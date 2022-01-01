@@ -9,13 +9,13 @@ contract MerkleFactory {
     event CreateDrop(address dropAddress);
 
     function createDrop(
-        address templateAddress,
-        address tokenAddress,
-        bytes32 merkleRoot,
-        uint256 expireTimestamp
+        address _templateAddress,
+        address _tokenAddress,
+        bytes32 _merkleRoot,
+        uint256 _expireTimestamp
     ) external returns (MerkleDrop drop) {
-        drop = MerkleDrop(Clones.clone(templateAddress));
-        drop.init(msg.sender, tokenAddress, merkleRoot, expireTimestamp);
+        drop = MerkleDrop(Clones.clone(_templateAddress));
+        drop.init(msg.sender, _tokenAddress, _merkleRoot, _expireTimestamp);
         drops.push(drop);
         emit CreateDrop(address(drop));
     }

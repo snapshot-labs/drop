@@ -19,60 +19,63 @@ contract MerkleDrop is IDrop, Ownable {
     mapping(address => bool) public claimed;
 
     function init(
-        address owner_,
-        address token_,
-        bytes32 merkleRoot_,
-        uint256 expireTimestamp_
+        address _owner,
+        address _token,
+        bytes32 _merkleRoot,
+        uint256 _expireTimestamp
     ) external {
-        require(!initialized, "Drop already Initialized");
+        require(!initialized, "Drop already initialized");
         initialized = true;
-        token = token_;
-        merkleRoot = merkleRoot_;
-        expireTimestamp = expireTimestamp_;
-        _transferOwnership(owner_);
+        token = _token;
+        merkleRoot = _merkleRoot;
+        expireTimestamp = _expireTimestamp;
+        _transferOwnership(_owner);
     }
 
     /**
      * @dev Implementation to claim token.
+     * @param _recipient Address of user who claims the drop.
+     * @param _amount Amount of tokens allotcated based on voting power.
+     * @param _merkleProof Proof of merkle root generated from recipient address and value
      *
      * This implementation is the way to claim tokens, that were allocated to accounts. This means
-     * that the account and the value to claim data is converted to merkle root and given to this contract
+     * that the recipient and the value to claim data is converted to merkle root and given to this contract
      * at the time of deployment.
      *
-     * To claim caller should pass the account address, amount value and proof, after verifying the
-     * proof, account and its value were right, we transfer the tokens and mark it as claimed.
+     * To claim caller should pass the recipient address, amount value and proof, after verifying the
+     * proof, recipient and its value were right, we transfer the tokens and mark it as claimed.
      */
     function claim(
-        address account,
-        uint256 amount,
-        bytes32[] calldata merkleProof
+        address _recipient,
+        uint256 _amount,
+        bytes32[] calldata _merkleProof
     ) external override {
-        require(!claimed[account], "Drop already claimed.");
-        bytes32 node = keccak256(abi.encodePacked(account, amount));
+        require(!claimed[_recipient], "Drop already claimed.");
+        bytes32 leaf = keccak256(abi.encodePacked(_recipient, _amount));
         require(
-            MerkleProof.verify(merkleProof, merkleRoot, node),
+            MerkleProof.verify(_merkleProof, merkleRoot, leaf),
             "Invalid proof"
         );
-        claimed[account] = true;
-        IERC20(token).safeTransfer(account, amount);
-        emit Claimed(account, amount);
+        claimed[_recipient] = true;
+        IERC20(token).safeTransfer(_recipient, _amount);
+        emit Claimed(_recipient, _amount);
     }
 
     /**
      * @dev Implementation to sweep out remaining tokens back.
+     * @param _token Address of the drop token
      *
-     * ACCESS: onlyOwner 
      * Only the owner of the contract can sweep all the remaining tokens back to their account.
      * The owner access is transfered from factory to deployer of the contract during initialization.
-     * 
+     *
      * Only after the drop expiry time, owner can sweep out the tokens.
      */
-    function sweepOut(address token_) external onlyOwner {
+    function sweepOut(address _token) external onlyOwner {
         require(
-            block.timestamp >= expireTimestamp || token_ != token,
+            block.timestamp >= expireTimestamp || _token != token,
             "Drop not ended"
         );
-        IERC20 tokenContract = IERC20(token_);
+        IERC20 tokenContract = IERC20(_token);
         uint256 balance = tokenContract.balanceOf(address(this));
         tokenContract.safeTransfer(msg.sender, balance);
     }
