@@ -41,13 +41,12 @@ describe("Create ERC20 Merkle Drop and test", function () {
       // Test token
       deployedToken = await deploy("MyToken");
       // Create a new contract from factory contract
-      const test = await factory.createDrop(
+      await factory.createDrop(
         erc20DropTemplate.address,
         deployedToken.address,
         this.merkleTree.getHexRoot(),
         Date.now() + 1000000
       );
-      console.log("🚀 ~ file: index.ts ~ line 50 ~ test", await test.address());
       const createdMerkleDrops = await factory.getAllMerkleDrops();
       contractOne = createdMerkleDrops[0];
       console.log("🚀 ~ file: index.ts ~ line 53 ~ contractOne", contractOne);
