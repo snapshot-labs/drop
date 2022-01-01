@@ -32,6 +32,16 @@ contract MerkleDrop is IDrop, Ownable {
         _transferOwnership(owner_);
     }
 
+    /**
+     * @dev Implementation to claim token.
+     *
+     * This implementation is the way to claim tokens, that were allocated to accounts. This means
+     * that the account and the value to claim data is converted to merkle root and given to this contract
+     * at the time of deployment.
+     *
+     * To claim caller should pass the account address, amount value and proof, after verifying the
+     * proof, account and its value were right, we transfer the tokens and mark it as claimed.
+     */
     function claim(
         address account,
         uint256 amount,
@@ -48,6 +58,15 @@ contract MerkleDrop is IDrop, Ownable {
         emit Claimed(account, amount);
     }
 
+    /**
+     * @dev Implementation to sweep out remaining tokens back.
+     *
+     * ACCESS: onlyOwner 
+     * Only the owner of the contract can sweep all the remaining tokens back to their account.
+     * The owner access is transfered from factory to deployer of the contract during initialization.
+     * 
+     * Only after the drop expiry time, owner can sweep out the tokens.
+     */
     function sweepOut(address token_) external onlyOwner {
         require(
             block.timestamp >= expireTimestamp || token_ != token,
