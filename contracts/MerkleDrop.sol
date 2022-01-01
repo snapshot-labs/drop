@@ -2,79 +2,59 @@
 pragma solidity ^0.8.4;
 
 import "hardhat/console.sol";
+import "./IDrop.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MerkleDrop {
-    bytes32 private merkleRoot;
-    IERC20 public dropToken;
-    uint256 private initialBalance;
-    uint256 private remainingValue;
-    uint256 private spentTokens;
-    uint256 private expiresInSeconds;
+contract MerkleDrop is IDrop, Ownable {
+    using SafeERC20 for IERC20;
 
-    uint256 public index;
-    bool public isEnabled;
-    address private owner;
+    address public override token;
+    bytes32 public override merkleRoot;
+    bool public initialized;
+    uint256 public expireTimestamp;
 
     mapping(address => bool) public claimed;
 
-    event Claimed(address recipient, uint256 value);
-
     function init(
-        IERC20 _dropToken,
-        uint256 _initialBalance,
-        bytes32 _merkleRoot,
-        uint256 _index,
-        uint256 _timeDurationInSeconds,
-        address _owner
+        address owner_,
+        address token_,
+        bytes32 merkleRoot_,
+        uint256 expireTimestamp_
     ) external {
-        owner = _owner;
-        dropToken = _dropToken;
-        initialBalance = _initialBalance;
-        remainingValue = _initialBalance;
-        merkleRoot = _merkleRoot;
-        index = _index;
-        isEnabled = true;
-        expiresInSeconds = block.timestamp + _timeDurationInSeconds;
+        require(!initialized, "Drop already Initialized");
+        initialized = true;
+        token = token_;
+        merkleRoot = merkleRoot_;
+        expireTimestamp = expireTimestamp_;
+        _transferOwnership(owner_);
     }
 
     function claim(
         address account,
-        uint256 value,
-        bytes32[] memory proof
-    ) public {
+        uint256 amount,
+        bytes32[] calldata merkleProof
+    ) external override {
+        require(!claimed[account], "Drop already claimed.");
+        bytes32 node = keccak256(abi.encodePacked(account, amount));
         require(
-            MerkleProof.verify(
-                proof,
-                merkleRoot,
-                keccak256(abi.encodePacked(account, value))
-            ),
-            "Invalid merkle proof"
-        );
-        require(!claimed[account], "Already claimed.");
-        require(isEnabled, "Contract disabled.");
-        require(block.timestamp <= expiresInSeconds, "Times up!");
-        console.log(dropToken.balanceOf(address(this)));
-        require(
-            dropToken.balanceOf(address(this)) >= value,
-            "No tokens to drop."
+            MerkleProof.verify(merkleProof, merkleRoot, node),
+            "Invalid proof"
         );
         claimed[account] = true;
-        remainingValue -= value;
-        spentTokens += value;
-        dropToken.transfer(account, value);
-        emit Claimed(account, value);
+        IERC20(token).safeTransfer(account, amount);
+        emit Claimed(account, amount);
     }
 
-    function claimTokensBack(address _msgSender) external {
-        require(_msgSender == owner, "Not a owner");
-        require(block.timestamp >= expiresInSeconds, "Drop not ended yet!");
-        dropToken.transfer(owner, remainingValue);
-    }
-
-    function disable(address _msgSender) external {
-        require(_msgSender == owner, "Not a owner");
-        isEnabled = false;
+    function sweepOut(address token_) external onlyOwner {
+        require(
+            block.timestamp >= expireTimestamp || token_ != token,
+            "Drop not ended"
+        );
+        IERC20 tokenContract = IERC20(token_);
+        uint256 balance = tokenContract.balanceOf(address(this));
+        tokenContract.safeTransfer(msg.sender, balance);
     }
 }

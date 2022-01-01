@@ -1,47 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "./MerkleDrop.sol";
 import "@openzeppelin/contracts/proxy/Clones.sol";
+import "./MerkleDrop.sol";
 
 contract MerkleFactory {
     MerkleDrop[] public drops;
-    address private masterContract;
+    event CreateDrop(address dropAddress);
 
-    constructor(address _masterContract) {
-        masterContract = _masterContract;
-    }
-
-    event MerkleContractCreated(address contractAddress);
-
-    function createMerkleDrop(
-        IERC20 token,
-        uint256 balance,
+    function createDrop(
+        address templateAddress,
+        address tokenAddress,
         bytes32 merkleRoot,
-        uint256 expiresInSeconds
-    ) external {
-        MerkleDrop drop = MerkleDrop(Clones.clone(masterContract));
-        drop.init(
-            token,
-            balance,
-            merkleRoot,
-            drops.length,
-            expiresInSeconds,
-            msg.sender
-        );
+        uint256 expireTimestamp
+    ) external returns (MerkleDrop drop) {
+        drop = MerkleDrop(Clones.clone(templateAddress));
+        drop.init(msg.sender, tokenAddress, merkleRoot, expireTimestamp);
         drops.push(drop);
-        emit MerkleContractCreated(address(drop));
+        emit CreateDrop(address(drop));
     }
 
     function getAllMerkleDrops() external view returns (MerkleDrop[] memory) {
         return drops;
-    }
-
-    function disable(MerkleDrop drop) external {
-        drops[drop.index()].disable(msg.sender);
-    }
-
-    function claimRemainingTokens(MerkleDrop drop) external {
-        drops[drop.index()].claimTokensBack(msg.sender);
     }
 }

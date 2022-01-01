@@ -19,13 +19,10 @@ function hashToken(account: string, value: string) {
   );
 }
 
-describe("Create Factory and test", function () {
+describe("Create ERC20 Merkle Drop and test", function () {
   let factory: any;
   before(async function () {
-    // We need to deploy one contract and make all other child contracts act as proxies
-    // that delegate calls to the first child contract
-    const deployedContract = await deploy("MerkleDrop");
-    factory = await deploy("MerkleFactory", deployedContract.address);
+    factory = await deploy("MerkleFactory");
     this.accounts = await hre.ethers.getSigners();
     this.merkleTree = new MerkleTree(
       Object.entries(sampleData).map((data: any) =>
@@ -36,22 +33,24 @@ describe("Create Factory and test", function () {
     );
   });
 
-  describe("Create a merkle drop and claim tokens", function () {
+  describe("Claim tokens", function () {
     let deployedToken: any;
     let contractOne: any;
     before(async function () {
+      const erc20DropTemplate = await deploy("MerkleDrop");
       // Test token
       deployedToken = await deploy("MyToken");
       // Create a new contract from factory contract
-      await factory.createMerkleDrop(
+      const test = await factory.createDrop(
+        erc20DropTemplate.address,
         deployedToken.address,
-        500000,
         this.merkleTree.getHexRoot(),
-        900 // end time in seconds
+        Date.now() + 1000000
       );
+      console.log("🚀 ~ file: index.ts ~ line 50 ~ test", await test.address());
       const createdMerkleDrops = await factory.getAllMerkleDrops();
       contractOne = createdMerkleDrops[0];
-      // Transfer token to the newly created merkle drop contract
+      console.log("🚀 ~ file: index.ts ~ line 53 ~ contractOne", contractOne);
       await deployedToken.transfer(createdMerkleDrops[0], 500000);
     });
 
@@ -61,14 +60,14 @@ describe("Create Factory and test", function () {
          * Create merkle proof (anyone with knowledge of the merkle tree)
          */
         const proof = this.merkleTree.getHexProof(hashToken(account, value));
-        const deployedMerkleContract = await hre.ethers.getContractAt(
+        const deployedMerkleDropContract = await hre.ethers.getContractAt(
           "MerkleDrop",
           contractOne
         );
         /**
          * Claims token using merkle proof
          */
-        await deployedMerkleContract.claim(account, value, proof);
+        await deployedMerkleDropContract.claim(account, value, proof);
         console.log(
           "Token available in account %s is",
           account,
@@ -77,9 +76,19 @@ describe("Create Factory and test", function () {
       });
     }
     after(async function () {
+      console.log(
+        "🚀 ~ Final balance before sweep",
+        await deployedToken.balanceOf(
+          "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+        )
+      );
+      const deployedMerkleDropContract = await hre.ethers.getContractAt(
+        "MerkleDrop",
+        contractOne
+      );
       await expect(
-        factory.claimRemainingTokens(contractOne)
-      ).to.be.revertedWith("Drop not ended yet!");
+        deployedMerkleDropContract.sweepOut(deployedToken.address)
+      ).to.be.revertedWith("Drop not ended");
     });
   });
 });
