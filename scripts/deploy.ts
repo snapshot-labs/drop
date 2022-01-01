@@ -13,15 +13,10 @@ async function main() {
   const MerkleDropReceipt = await MerkleDrop.deploy();
   await MerkleDropReceipt.deployed();
 
-  const MerkleDropERC721 = await ethers.getContractFactory("MerkleDropERC721");
-  const MerkleDropERC721Receipt = await MerkleDropERC721.deploy();
-  await MerkleDropERC721Receipt.deployed();
-
   console.log({
     MyToken: MyTokenReceipt.address,
     MerkleFactory: MerkleFactoryReceipt.address,
     MerkleDrop: MerkleDropReceipt.address,
-    MerkleDropERC721: MerkleDropERC721Receipt.address,
   });
 }
 
