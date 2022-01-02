@@ -4,5 +4,3 @@
 - time-limit through the expireTrench function
 
 
-
-*Will keep testing and documenting.
