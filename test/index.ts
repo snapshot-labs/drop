@@ -1,3 +1,5 @@
+import { ethers } from "ethers";
+
 const hre = require("hardhat");
 const { expect } = require("chai");
 const { MerkleTree } = require("merkletreejs");
@@ -8,6 +10,31 @@ const sampleData: { string: string } = require("./sample-data.json");
 async function deploy(name: any, ...params: any) {
   const Contract = await hre.ethers.getContractFactory(name);
   return await Contract.deploy(...params).then((f: any) => f.deployed());
+}
+
+function getIndex(address: string, value: string, proof: any) {
+  let index = 0;
+  let computedHash = ethers.utils.solidityKeccak256(
+    ["address", "uint256"],
+    [address, value]
+  );
+  for (let i = 0; i < proof.length; i++) {
+    index *= 2;
+    const proofElement = proof[i];
+    if (computedHash <= proofElement) {
+      computedHash = ethers.utils.solidityKeccak256(
+        ["bytes32", "bytes32"],
+        [computedHash, proofElement]
+      );
+    } else {
+      computedHash = ethers.utils.solidityKeccak256(
+        ["bytes32", "bytes32"],
+        [proofElement, computedHash]
+      );
+      index += 1;
+    }
+  }
+  return index;
 }
 
 function hashToken(account: string, value: string) {
@@ -35,7 +62,7 @@ describe("Create ERC20 Merkle Drop and test", function () {
 
   describe("Claim tokens", function () {
     let deployedToken: any;
-    let contractOne: any;
+    let clonedContractAddress: any;
     before(async function () {
       const erc20DropTemplate = await deploy("MerkleDrop");
       // Test token
@@ -48,42 +75,38 @@ describe("Create ERC20 Merkle Drop and test", function () {
         Date.now() + 1000000
       );
       const createdMerkleDrops = await factory.getAllMerkleDrops();
-      contractOne = createdMerkleDrops[0];
-      console.log("🚀 ~ file: index.ts ~ line 53 ~ contractOne", contractOne);
-      await deployedToken.transfer(createdMerkleDrops[0], 500000);
+      clonedContractAddress = createdMerkleDrops[0];
+      await deployedToken.transfer(clonedContractAddress, 500000);
     });
 
-    for (const [account, value] of Object.entries(sampleData)) {
-      it("element", async function () {
-        /**
-         * Create merkle proof (anyone with knowledge of the merkle tree)
-         */
-        const proof = this.merkleTree.getHexProof(hashToken(account, value));
-        const deployedMerkleDropContract = await hre.ethers.getContractAt(
-          "MerkleDrop",
-          contractOne
-        );
-        /**
-         * Claims token using merkle proof
-         */
-        await deployedMerkleDropContract.claim(account, value, proof);
-        console.log(
-          "Token available in account %s is",
-          account,
-          await deployedToken.balanceOf(account)
-        );
-      });
-    }
-    after(async function () {
-      console.log(
-        "🚀 ~ Final balance before sweep",
-        await deployedToken.balanceOf(
-          "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
-        )
-      );
+    it("element", async function () {
+      const address = this.accounts[0].address;
+      /**
+       * Create merkle proof (anyone with knowledge of the merkle tree)
+       */
+      const proof = this.merkleTree.getHexProof(hashToken(address, "4000"));
       const deployedMerkleDropContract = await hre.ethers.getContractAt(
         "MerkleDrop",
-        contractOne
+        clonedContractAddress
+      );
+      const index = getIndex(address, "4000", proof);
+      expect(await deployedMerkleDropContract.isClaimed(index)).to.equal(false);
+      /**
+       * Claims token using merkle proof
+       */
+      await deployedMerkleDropContract.claim("4000", proof);
+      expect(await deployedMerkleDropContract.isClaimed(index)).to.equal(true);
+      console.log(
+        "Token available in account %s is",
+        address,
+        await deployedToken.balanceOf(address)
+      );
+    });
+
+    after(async function () {
+      const deployedMerkleDropContract = await hre.ethers.getContractAt(
+        "MerkleDrop",
+        clonedContractAddress
       );
       await expect(
         deployedMerkleDropContract.sweepOut(deployedToken.address)
