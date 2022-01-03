@@ -50,7 +50,7 @@ contract MerkleDrop is IDrop, Ownable {
         uint256 _amount,
         bytes32[] calldata _merkleProof
     ) external override {
-        require(!claimed[_recipient], "Drop already claimed.");
+        require(!claimed[_recipient], "MerkleDrop: Tokens  already claimed.");
         bytes32 leaf = keccak256(abi.encodePacked(_recipient, _amount));
         require(
             MerkleProof.verify(_merkleProof, merkleRoot, leaf),
