@@ -54,7 +54,7 @@ contract MerkleDrop is IDrop, Ownable {
         bytes32 leaf = keccak256(abi.encodePacked(_recipient, _amount));
         require(
             MerkleProof.verify(_merkleProof, merkleRoot, leaf),
-            "Invalid proof"
+            "MerkleDrop: Invalid proof."
         );
         claimed[_recipient] = true;
         IERC20(token).safeTransfer(_recipient, _amount);
