@@ -24,7 +24,7 @@ contract MerkleDrop is IDrop, Ownable {
         bytes32 _merkleRoot,
         uint256 _expireTimestamp
     ) external {
-        require(!initialized, "Drop already initialized");
+        require(!initialized, "MerkleDrop: Already initialized.");
         initialized = true;
         token = _token;
         merkleRoot = _merkleRoot;
