@@ -44,15 +44,10 @@ contract MerkleDrop is IDrop, Ownable {
 
     /**
      * @dev Implementation to claim token.
-     * @param _amount Amount of tokens allotcated based on voting power.
-     * @param _merkleProof Proof of merkle root generated from recipient address and value
+     * @param _amount Amount of tokens allocated based on voting power.
+     * @param _merkleProof Proof of merkle root generated from recipient address and amount
      *
-     * This implementation is the way to claim tokens, that were allocated to accounts. This means
-     * that the recipient and the value to claim data is converted to merkle root and given to this contract
-     * at the time of deployment.
-     *
-     * To claim caller should pass amount and proof, after verifying the
-     * proof, recipient and its value were right, we transfer the tokens and mark it as claimed.
+     * Transfers allocated tokens by verifying the merkle proof and stores the claim status.
      */
     function claim(uint256 _amount, bytes32[] calldata _merkleProof)
         external
